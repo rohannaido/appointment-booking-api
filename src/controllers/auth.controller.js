@@ -1,4 +1,6 @@
 const User = require("../models/user");
+const jwt = require('jsonwebtoken');
+const secretKey = 'your_secret_key';
 
 exports.login = async (req, res, next) => {
     const {
@@ -14,15 +16,24 @@ exports.login = async (req, res, next) => {
             }
         });
 
-        if (user) {
-            res.json({
-                message: 'Login successful'
-            });
-        } else {
+        if (!user) {
+
             res.status(401).json({
                 message: 'Invalid credentials'
             });
         }
+        
+        let payload = {
+            user: username,
+        } 
+
+        const authToken = await jwt.sign(payload, secretKey, { expiresIn: '1h' });
+
+        res.json({
+            token: authToken,
+            message: 'Login successful'
+        });
+
     } catch (error) {
         console.error('Error during login:', error);
         res.status(500).json({

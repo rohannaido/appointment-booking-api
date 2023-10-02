@@ -19,12 +19,15 @@ sequelize.sync({ force: false, }).then(() => {
 
 // Login route
 const authRouter = require('./routes/auth.router');
+const doctorRouter = require('./routes/doctor.router');
+const slotRouter = require('./routes/slot.router');
+const { authenticateToken } = require('./middlewares/auth');
+
 app.use('/auth', authRouter);
 
-const doctorRouter = require('./routes/doctor.router');
-app.use('/doctor', doctorRouter);
+app.use(authenticateToken)
 
-const slotRouter = require('./routes/slot.router');
+app.use('/doctor', doctorRouter);
 app.use('/slot', slotRouter);
 
 app.listen(PORT, () => {
