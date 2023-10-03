@@ -24,7 +24,8 @@ exports.login = async (req, res, next) => {
         }
         
         let payload = {
-            user: username,
+            userId: user?.id,
+            username: username,
         } 
 
         const authToken = await jwt.sign(payload, secretKey, { expiresIn: '1h' });
