@@ -8,7 +8,7 @@ exports.bookSlotForUser = async (req, res, next) => {
 
         const userId = req.user.userId;
 
-        const createSlotBooking = SlotBookings.create({
+        const createSlotBooking = await SlotBookings.create({
             doctor_id: doctorId,
             user_id: userId,
             date,
@@ -17,6 +17,27 @@ exports.bookSlotForUser = async (req, res, next) => {
         })
 
         res.send("Booked slot successfully!");
+
+    } catch (error) {
+        console.error('Error :', error);
+        res.status(500).json({
+            message: 'Internal server error'
+        });
+    }
+}
+
+exports.fetchBookingsByUser = async (req, res, next) => {
+    try {
+
+        const userId = req.user.userId;
+
+        const userSlotBookings = await SlotBookings.findAll({
+            user_id: userId,
+        })
+
+        console.log(userSlotBookings)
+
+        res.send(userSlotBookings);
 
     } catch (error) {
         console.error('Error :', error);
