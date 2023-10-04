@@ -1,5 +1,6 @@
 const Slot = require("../models/slot");
 const moment = require('moment');
+const SlotBookings = require("../models/slot_booking");
 const intervalInMinutes = 30;
 
 function generateTimeIntervals(startTime, endTime, intervalInMinutes) {
@@ -77,12 +78,32 @@ exports.fetchSlotTimesByDoctorByDate = async (req, res, next) => {
         let generatedTimeSlots = [];
         allSlotTimes.forEach((timeSlotItem) => {
             const timeIntervals = generateTimeIntervals(timeSlotItem.start_time, timeSlotItem.end_time, intervalInMinutes);
-            console.log(timeIntervals)
             generatedTimeSlots.push(...timeIntervals);
-
         })
 
-        res.send(generatedTimeSlots);
+        let doctorBookedSlots = await SlotBookings.findAll({
+            where: {
+                doctor_id: doctorId,
+                date: slotDate,
+            },
+            attributes: [
+                ["start_time", "start"],
+                ["end_time", "end"],
+            ],
+            raw: true,
+        })
+
+        let finalSlots = []
+
+        generatedTimeSlots.forEach((genSlot) => {
+            // Filtering out booked slots
+            let getSlot = doctorBookedSlots.find((item) => (item.start == genSlot.start && item.end == genSlot.end))
+            if(!getSlot){
+                finalSlots.push(genSlot);
+            }
+        })
+
+        res.send(finalSlots);
 
     } catch (error) {
         console.error('Error :', error);
