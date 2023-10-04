@@ -1,6 +1,7 @@
 const Slot = require("../models/slot");
 const moment = require('moment');
 const SlotBookings = require("../models/slot_booking");
+const { Op } = require("sequelize");
 const intervalInMinutes = 30;
 
 function generateTimeIntervals(startTime, endTime, intervalInMinutes) {
@@ -34,6 +35,9 @@ exports.fetchSlotDatesByDoctor = async (req, res, next) => {
         let allSlotDates = await Slot.findAll({
             where: {
                 doctorId: doctorId,
+                date: {
+                    [Op.gte] : moment().format("YYYY-MM-DD"),
+                }
             },
             group: [
                 ["date"]
@@ -66,7 +70,19 @@ exports.fetchSlotTimesByDoctorByDate = async (req, res, next) => {
         let allSlotTimes = await Slot.findAll({
             where: {
                 doctorId: doctorId,
-                date: slotDate
+                date: slotDate,
+                [Op.or]: [
+                    {
+                        start_time: {
+                            [Op.gte]: moment().add(30, 'minutes').format('HH:mm:ss')
+                        }
+                    },
+                    {
+                        date: {
+                            [Op.gte]: moment().add(1, 'day').format('YYYY-MM-DD')
+                        }
+                    }
+                ]
             },
             attributes: [
                 "start_time",
